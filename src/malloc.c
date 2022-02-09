@@ -27,8 +27,8 @@ static union my_malloc_block *find_best_block(size_t size)
     for (union my_malloc_block *it = g_my_malloc.list_head; it != NULL;
          it = it->next) {
         MY_MALLOC_ASSERT(it->is_used == false);
-        if (it->size > size &&
-            (result == NULL || result->size < it->size)) {
+        if (it->size >= size &&
+            (result == NULL || result->size <= it->size)) {
             prev_before_result = prev;
             result = it;
         }
@@ -51,6 +51,8 @@ void *my_malloc_unlocked(size_t size)
     if (result == NULL) {
         result = my_malloc_increase_break(size +
             sizeof(union my_malloc_block));
+        MY_MALLOC_ASSERT(((uintptr_t)result %
+            16) == 0);
         if (result == NULL)
             return (do_oom_return());
         result->size = size;
