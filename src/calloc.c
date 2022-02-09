@@ -11,6 +11,7 @@
 
 void *calloc(size_t num_elements, size_t element_size)
 {
+    void *(*volatile malloc_ptr)(size_t) = malloc;
     size_t malloced_size;
     void *result;
 
@@ -18,7 +19,7 @@ void *calloc(size_t num_elements, size_t element_size)
         errno = ENOMEM;
         return NULL;
     }
-    result = malloc(malloced_size);
+    result = malloc_ptr(malloced_size);
     if (result != NULL)
         memset(result, 0, malloced_size);
     return result;

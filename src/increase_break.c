@@ -36,6 +36,8 @@ void my_malloc_increase_break(size_t which_bucket)
         allocated_size = g_my_malloc.page_size + wanted_size;
         allocated_blocks = 1;
     }
+    MY_MALLOC_DEBUG_PRINTF("Increasing break by %zu for bucket %zu\n",
+        allocated_size, which_bucket);
     new_blocks = sbrk(allocated_size);
     if (new_blocks == (void *)-1)
         return;

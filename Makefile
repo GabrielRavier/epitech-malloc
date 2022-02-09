@@ -36,7 +36,8 @@ override CFLAGS += -MMD -MP -MF $@.d
 
 # We need to make our code position-independent since it's for a shared library
 # Also notify GCC that we're making a shared library
-override CFLAGS += -fPIC -shared
+# Also notify GCC that we need pthread support, since we use it
+override CFLAGS += -fPIC -shared -pthread
 
 # LDFLAGS should contain CFLAGS (seperate so command-line can add to it, and
 # to correspond to usual practice)

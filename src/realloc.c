@@ -35,9 +35,9 @@ void *realloc_innards(void *old_ptr, size_t new_size)
         if (new_size <= lower_size && new_size > higher_size)
             return (old_ptr);
         else
-            free(old_ptr);
+            my_free_unlocked(old_block);
     }
-    result = malloc(new_size);
+    result = my_malloc_unlocked(new_size);
     if (result != NULL)
         memcpy(result, old_ptr, (lower_size < new_size) ? lower_size :
             new_size);

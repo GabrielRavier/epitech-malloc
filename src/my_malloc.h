@@ -8,6 +8,7 @@
 #pragma once
 
 #include <pthread.h>
+#include <stdio.h>
 #include <stdint.h>
 #include <stddef.h>
 #include <stdbool.h>
@@ -46,5 +47,13 @@ extern struct g_my_malloc_type {
     pthread_mutex_t mutex;
 } g_my_malloc;
 
-bool my_malloc_internal_initializer();
-void my_malloc_increase_break(size_t which_bucket);
+bool my_malloc_initializer();
+void *my_malloc_increase_break(size_t which_bucket);
+void *my_malloc_unlocked(size_t size);
+void my_free_unlocked(union my_malloc_block *freed_block);
+
+#if 0
+    #define MY_MALLOC_DEBUG_PRINTF(...) fprintf(stderr, __VA_ARGS__)
+#else
+    #define MY_MALLOC_DEBUG_PRINTF(...)
+#endif

@@ -23,16 +23,13 @@ struct g_my_malloc_type g_my_malloc = {
 // Actually, the subject made me lie on the comment from before saying that the
 // page size is getpagesize(). It actually has to be getpagesize() * 2 because
 // the break must always be aligned on a multiple of two pages...
-bool my_malloc_internal_initializer()
+bool my_malloc_initializer()
 {
     union my_malloc_block *first_block = sbrk(0);
     ssize_t sbrked_size;
     size_t current_page_size_bucket_size = 8;
-    pthread_mutexattr_t mutex_attr;
 
-    MY_MALLOC_ASSERT(pthread_mutexattr_init(&mutex_attr) == 0);
-    pthread_mutexattr_settype(&mutex_attr, PTHREAD_MUTEX_RECURSIVE);
-    MY_MALLOC_ASSERT(pthread_mutex_init(&g_my_malloc.mutex, &mutex_attr) == 0);
+    MY_MALLOC_ASSERT(pthread_mutex_init(&g_my_malloc.mutex, NULL) == 0);
     g_my_malloc.page_size = getpagesize() * 2;
     sbrked_size = g_my_malloc.page_size - sizeof(union my_malloc_block) -
         ((intptr_t)first_block & (g_my_malloc.page_size - 1));

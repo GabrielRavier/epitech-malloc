@@ -17,7 +17,7 @@ static void *do_oom_return(void)
     return (NULL);
 }
 
-static void *malloc_innards(size_t size)
+void *my_malloc_unlocked(size_t size)
 {
     ssize_t full_page_allocation_size = g_my_malloc.page_size -
         sizeof(union my_malloc_block);
@@ -39,6 +39,8 @@ static void *malloc_innards(size_t size)
             return (do_oom_return());
         ++used_bucket;
     }
+    MY_MALLOC_DEBUG_PRINTF("Allocating %zu bytes from bucket %zu\n", size,
+        used_bucket);
     result_block = g_my_malloc.free_blocks[used_bucket];
     if (result_block == NULL) {
         my_malloc_increase_break(used_bucket);
@@ -52,14 +54,14 @@ static void *malloc_innards(size_t size)
     return &result_block[1];
 }
 
-void *malloc(size_t bytes)
+void *malloc(size_t size)
 {
     void *result;
 
     pthread_mutex_lock(&g_my_malloc.mutex);
-    if (g_my_malloc.page_size == 0 && !my_malloc_internal_initializer())
+    if (g_my_malloc.page_size == 0 && !my_malloc_initializer())
         return (do_oom_return());
-    result = malloc_innards(bytes);
+    result = my_malloc_unlocked(size);
     pthread_mutex_unlock(&g_my_malloc.mutex);
     return (result);
 }
