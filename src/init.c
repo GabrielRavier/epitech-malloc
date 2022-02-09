@@ -6,6 +6,7 @@
 */
 
 #include "my_malloc.h"
+#include "assert.h"
 #include <unistd.h>
 #include <stdint.h>
 #include <stdbool.h>
@@ -27,7 +28,11 @@ bool my_malloc_internal_initializer()
     union my_malloc_block *first_block = sbrk(0);
     ssize_t sbrked_size;
     size_t current_page_size_bucket_size = 8;
+    pthread_mutexattr_t mutex_attr;
 
+    MY_MALLOC_ASSERT(pthread_mutexattr_init(&mutex_attr) == 0);
+    pthread_mutexattr_settype(&mutex_attr, PTHREAD_MUTEX_RECURSIVE);
+    MY_MALLOC_ASSERT(pthread_mutex_init(&g_my_malloc.mutex, &mutex_attr) == 0);
     g_my_malloc.page_size = getpagesize() * 2;
     sbrked_size = g_my_malloc.page_size - sizeof(union my_malloc_block) -
         ((intptr_t)first_block & (g_my_malloc.page_size - 1));

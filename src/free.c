@@ -25,5 +25,7 @@ void free(void *malloced_ptr)
 {
     if (malloced_ptr == NULL)
         return;
+    pthread_mutex_lock(&g_my_malloc.mutex);
     free_innards((union my_malloc_block *)malloced_ptr - 1);
+    pthread_mutex_unlock(&g_my_malloc.mutex);
 }

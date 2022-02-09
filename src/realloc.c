@@ -46,11 +46,16 @@ void *realloc_innards(void *old_ptr, size_t new_size)
 
 void *realloc(void *old_ptr, size_t new_size)
 {
+    void *result;
+
     if (old_ptr == NULL)
         return (malloc(new_size));
     if (new_size == 0) {
         free(old_ptr);
         return (NULL);
     }
-    return (realloc_innards(old_ptr, new_size));
+    pthread_mutex_lock(&g_my_malloc.mutex);
+    result = realloc_innards(old_ptr, new_size);
+    pthread_mutex_unlock(&g_my_malloc.mutex);
+    return (result);
 }

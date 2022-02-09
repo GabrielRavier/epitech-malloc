@@ -54,10 +54,13 @@ static void *malloc_innards(size_t size)
 
 void *malloc(size_t bytes)
 {
-    if (bytes > 0x7FFFFFFF)
-        __builtin_trap();
+    void *result;
+
+    pthread_mutex_lock(&g_my_malloc.mutex);
     if (g_my_malloc.page_size == 0 && !my_malloc_internal_initializer())
         return (do_oom_return());
-    return malloc_innards(bytes);
+    result = malloc_innards(bytes);
+    pthread_mutex_unlock(&g_my_malloc.mutex);
+    return (result);
 }
 

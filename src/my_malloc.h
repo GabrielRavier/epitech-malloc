@@ -7,6 +7,7 @@
 
 #pragma once
 
+#include <pthread.h>
 #include <stdint.h>
 #include <stddef.h>
 #include <stdbool.h>
@@ -42,6 +43,7 @@ extern struct g_my_malloc_type {
     size_t page_size;
     size_t above_page_size_bucket;
     union my_malloc_block *free_blocks[MY_MALLOC_TOTAL_BUCKET_COUNT];
+    pthread_mutex_t mutex;
 } g_my_malloc;
 
 bool my_malloc_internal_initializer();
