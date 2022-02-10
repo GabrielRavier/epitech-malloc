@@ -7,14 +7,14 @@
 
 #include "my_malloc.h"
 #include "assert.h"
-#include <pthread.h>
 #include <unistd.h>
 #include <stdint.h>
 #include <stdbool.h>
 
 struct g_my_malloc_type g_my_malloc = {
     .page_size = 0,
-    .mutex = PTHREAD_MUTEX_INITIALIZER
+    .above_page_size_bucket = 0,
+    .free_blocks = {}
 };
 
 // This is called the first time malloc is called. It sets up the page size and
@@ -25,9 +25,24 @@ struct g_my_malloc_type g_my_malloc = {
 // the break must always be aligned on a multiple of two pages...
 bool my_malloc_initializer()
 {
+    union my_malloc_block *first_block = sbrk(0);
+    ssize_t sbrked_size;
+    size_t current_page_size_bucket_size = 8;
+
+    MY_MALLOC_ASSERT(pthread_mutex_init(&g_my_malloc.mutex, NULL) == 0);
     g_my_malloc.page_size = getpagesize() * 2;
-    g_my_malloc.system_break = sbrk(0);
-    g_my_malloc.virtual_system_break =
-        (char *)(((uintptr_t)g_my_malloc.system_break + 16) & ~0xF);
+    sbrked_size = g_my_malloc.page_size - sizeof(union my_malloc_block) -
+        ((intptr_t)first_block & (g_my_malloc.page_size - 1));
+    if (sbrked_size < 0)
+        sbrked_size += g_my_malloc.page_size;
+    if (sbrked_size != 0)
+        if (sbrk(sbrked_size) == (void *)-1) {
+            g_my_malloc.page_size = 0;
+            return (false);
+        }
+    while (g_my_malloc.page_size > current_page_size_bucket_size) {
+        current_page_size_bucket_size <<= 1;
+        ++g_my_malloc.above_page_size_bucket;
+    }
     return (true);
 }
