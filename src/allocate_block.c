@@ -8,6 +8,8 @@
 #include "my_malloc.h"
 #include <unistd.h>
 
+// This simply allocates a new block and puts it on the front of the
+// corresponding bucket's free list
 void my_malloc_allocate_block(size_t which_bucket)
 {
     ssize_t wanted_size = (1 << (which_bucket + 4));

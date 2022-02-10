@@ -18,6 +18,7 @@ static void *do_oom_return(void)
     return (NULL);
 }
 
+// Sigh... this is to conform to what we're asked for...
 static size_t best_fit(size_t starting_bucket)
 {
     for (size_t i = starting_bucket; i != MY_MALLOC_TOTAL_BUCKET_COUNT; ++i)
@@ -26,6 +27,8 @@ static size_t best_fit(size_t starting_bucket)
     return (starting_bucket);
 }
 
+// If there's nothing in our bucket right now, we go and try to allocate a new
+// one from the system
 static void *alloc_from_bucket(size_t used_bucket,
     __attribute__((unused)) size_t size)
 {
