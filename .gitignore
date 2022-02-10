@@ -1,3 +1,4 @@
 # Build artifacts
 /libmy_malloc.so
 /obj/
+/tests/malloc/obj/

@@ -2,7 +2,7 @@
 ## EPITECH PROJECT, 2022
 ## malloc
 ## File description:
-## Makefile for malloc
+## Makefile for malloc tests
 ##
 
 # Makefiles are prettier like this
@@ -34,35 +34,31 @@ MAKEFLAGS += --warn-undefined-variables --no-builtin-rules
 # header-related dependency problems we could have had
 override CFLAGS += -MMD -MP -MF $@.d
 
-# We need to make our code position-independent since it's for a shared library
-# Also notify GCC that we're making a shared library
-# Also notify GCC that we need pthread support, since we use it
-override CFLAGS += -fPIC -shared -pthread
+# We're using Criterion here
+override CFLAGS += -lcriterion
 
 # LDFLAGS should contain CFLAGS (seperate so command-line can add to it, and
 # to correspond to usual practice)
 override LDFLAGS += $(CFLAGS)
 
-.PHONY: all clean fclean re make_tests_binary
+.PHONY: all clean fclean re
 
 .PREVIOUS: obj/%.o
 
-BINARY_NAME := libmy_malloc.so
+BINARY_NAME := tests_binary
 
 all: $(BINARY_NAME)
 
 # Program sources files
-SOURCE_FILES := calloc reallocarray init malloc realloc free increase_break
-SOURCE_FILES += assert_fail allocate_block posix_memalign memalign
-SOURCE_FILES += malloc_usable_size pvalloc valloc aligned_alloc
+SOURCE_FILES := malloc posix_memalign realloc aligned_alloc malloc_usable_size calloc
 
-OBJECT_FILES := $(addprefix obj/src/, $(addsuffix .o, $(SOURCE_FILES)))
+OBJECT_FILES := $(addprefix obj/tests/, $(addsuffix .o, $(SOURCE_FILES)))
 
 $(BINARY_NAME): $(OBJECT_FILES)
 > $(CC) $(LDFLAGS) -o $@ $(OBJECT_FILES)
 
-obj/src/%.o: src/%.c
-> @mkdir --parents obj/src/
+obj/tests/%.o: criterion_tests/%.c
+> @mkdir --parents obj/tests
 > $(CC) -c $< -o $@ $(CFLAGS)
 
 # Include dependencies for the object files
@@ -80,12 +76,3 @@ fclean: clean
 re:
 > $(MAKE) clean
 > $(MAKE) all
-
-make_tests_binary:
-> $(MAKE) -C tests/malloc
-
-# Runs tests
-tests_run: make_tests_binary
-> $(MAKE) clean
-> $(MAKE) CFLAGS="$(CFLAGS) --coverage"
-> ./tests/malloc/script_test.sh & LD_PRELOAD=./libmy_malloc.so ./tests/malloc/tests_binary & wait
