@@ -40,17 +40,23 @@ enum {
 // (or larger)
 // free_blocks is an array of pointers, each pointing to the first free block of
 // a certain bucket
+// mutex is a mutex locked whenever anything that touches free_blocks is called
+// virtual_break is the break as actually used by our malloc
+// system_break is the break as the kernel sees it
 extern struct g_my_malloc_type {
     size_t page_size;
     size_t above_page_size_bucket;
     union my_malloc_block *free_blocks[MY_MALLOC_TOTAL_BUCKET_COUNT];
     pthread_mutex_t mutex;
+    char *virtual_break;
+    char *system_break;
 } g_my_malloc;
 
 bool my_malloc_initializer();
-void *my_malloc_increase_break(size_t which_bucket);
+void *my_malloc_increase_break(size_t size);
+void my_malloc_allocate_block(size_t bucket);
 void *my_malloc_unlocked(size_t size);
-void my_free_unlocked(union my_malloc_block *freed_block);
+void my_free_unlocked(void *malloced_ptr);
 
 #if 0
     #define MY_MALLOC_DEBUG_PRINTF(...) fprintf(stderr, __VA_ARGS__)

@@ -52,7 +52,7 @@ BINARY_NAME := libmy_malloc.so
 all: $(BINARY_NAME)
 
 # Program sources files
-SOURCE_FILES := calloc reallocarray init malloc realloc free increase_break assert_fail
+SOURCE_FILES := calloc reallocarray init malloc realloc free increase_break assert_fail allocate_block
 
 OBJECT_FILES := $(addprefix obj/src/, $(addsuffix .o, $(SOURCE_FILES)))
 

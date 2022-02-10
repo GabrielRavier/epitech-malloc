@@ -6,40 +6,35 @@
 */
 
 #include "my_malloc.h"
+#include "assert.h"
 #include <unistd.h>
 
-static void set_new_blocks(size_t which_bucket,
-    union my_malloc_block *new_blocks, size_t allocated_blocks,
-    size_t block_size)
+static char *align_to_page_size(char *ptr)
 {
-    g_my_malloc.free_blocks[which_bucket] = new_blocks;
-    while (--allocated_blocks > 0) {
-        new_blocks->next_block =
-            (union my_malloc_block *)((uintptr_t)new_blocks + block_size);
-        new_blocks = new_blocks->next_block;
-    }
+    return ptr + (((((~(uintptr_t)ptr) + 1) % g_my_malloc.page_size) +
+        g_my_malloc.page_size));
 }
 
-void my_malloc_increase_break(size_t which_bucket)
+void *my_malloc_increase_break(size_t size)
 {
-    ssize_t wanted_size = 1 << (which_bucket + 3);
-    size_t allocated_size;
-    size_t allocated_blocks;
-    union my_malloc_block *new_blocks;
+    char *wanted_new_break;
+    void *result = g_my_malloc.virtual_break;
 
-    if (wanted_size <= 0)
-        return;
-    if ((size_t)wanted_size < g_my_malloc.page_size) {
-        allocated_size = g_my_malloc.page_size;
-        allocated_blocks = allocated_size / wanted_size;
-    } else {
-        allocated_size = g_my_malloc.page_size + wanted_size;
-        allocated_blocks = 1;
+    MY_MALLOC_ASSERT((size % 8) == 0);
+    MY_MALLOC_DEBUG_PRINTF("Increasing virtual break by %zu bytes\n", size);
+    if (g_my_malloc.virtual_break + size > g_my_malloc.system_break) {
+        MY_MALLOC_ASSERT(sbrk(0) == g_my_malloc.system_break);
+        wanted_new_break =
+            align_to_page_size(g_my_malloc.virtual_break + size);
+        MY_MALLOC_ASSERT(((uintptr_t)wanted_new_break %
+            g_my_malloc.page_size) == 0);
+        MY_MALLOC_DEBUG_PRINTF("Increasing system break by %td bytes\n",
+            wanted_new_break - g_my_malloc.system_break);
+        if (brk(wanted_new_break) == -1)
+            return (NULL);
+        MY_MALLOC_ASSERT(g_my_malloc.system_break < wanted_new_break);
+        g_my_malloc.system_break = wanted_new_break;
     }
-    MY_MALLOC_DEBUG_PRINTF("Increasing break by %zu for bucket %zu\n",
-        allocated_size, which_bucket);
-    new_blocks = sbrk(allocated_size);
-    if (new_blocks == (void *)-1)
-        return;
-    set_new_blocks(which_bucket, new_blocks, allocated_blocks, wanted_size);
+    g_my_malloc.virtual_break += size;
+    return (result);
 }
