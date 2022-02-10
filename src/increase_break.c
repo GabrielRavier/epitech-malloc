@@ -30,6 +30,7 @@ void *my_malloc_increase_break(size_t size)
             wanted_new_break - g_my_malloc.system_break);
         if (brk(wanted_new_break) == -1)
             return (NULL);
+        MY_MALLOC_ASSERT(g_my_malloc.system_break < wanted_new_break);
         g_my_malloc.system_break = wanted_new_break;
     }
     g_my_malloc.virtual_system_break += size;
