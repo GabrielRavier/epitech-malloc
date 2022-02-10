@@ -49,25 +49,9 @@ static void *alloc_from_bucket(size_t used_bucket,
 
 void *my_malloc_unlocked(size_t size)
 {
-    ssize_t full_page_allocation_size = g_my_malloc.page_size -
-        sizeof(union my_malloc_block);
-    size_t used_bucket;
-    size_t bucket_size;
-
-    if (size <= (size_t)full_page_allocation_size) {
-        used_bucket = 0;
-        bucket_size = 8;
-        full_page_allocation_size = -(sizeof(union my_malloc_block));
-    } else {
-        used_bucket = g_my_malloc.above_page_size_bucket;
-        bucket_size = g_my_malloc.page_size;
-    }
-    while (size > bucket_size + full_page_allocation_size) {
-        bucket_size <<= 1;
-        if (bucket_size == 0)
-            return (do_oom_return());
-        ++used_bucket;
-    }
+    size_t used_bucket = my_malloc_compute_used_bucket(size);
+    if (used_bucket == (size_t)-1)
+        return (do_oom_return());
     return (alloc_from_bucket(used_bucket, size));
 }
 
@@ -77,6 +61,8 @@ void *malloc(size_t size)
 
     if (size == 0)
         size = 1;
+    if (size > (PTRDIFF_MAX / 2))
+        return (do_oom_return());
     MY_MALLOC_DEBUG_PRINTF("Malloc allocating %zu bytes\n", size);
     pthread_mutex_lock(&g_my_malloc.mutex);
     if (g_my_malloc.page_size == 0 && !my_malloc_initializer())

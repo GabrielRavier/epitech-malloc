@@ -52,7 +52,9 @@ BINARY_NAME := libmy_malloc.so
 all: $(BINARY_NAME)
 
 # Program sources files
-SOURCE_FILES := calloc reallocarray init malloc realloc free increase_break assert_fail allocate_block
+SOURCE_FILES := calloc reallocarray init malloc realloc free increase_break
+SOURCE_FILES += assert_fail allocate_block posix_memalign memalign
+SOURCE_FILES += malloc_usable_size pvalloc valloc aligned_alloc
 
 OBJECT_FILES := $(addprefix obj/src/, $(addsuffix .o, $(SOURCE_FILES)))
 
@@ -60,8 +62,7 @@ $(BINARY_NAME): $(OBJECT_FILES)
 > $(CC) $(LDFLAGS) -o $@ $(OBJECT_FILES)
 
 obj/src/%.o: src/%.c
-> @mkdir --parents obj/src/IMonitorDisplay
-> @mkdir --parents obj/src/IMonitorModule
+> @mkdir --parents obj/src/
 > $(CC) -c $< -o $@ $(CFLAGS)
 
 # Include dependencies for the object files
