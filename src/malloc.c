@@ -75,6 +75,8 @@ void *malloc(size_t size)
 {
     void *result;
 
+    if (size == 0)
+        size = 1;
     MY_MALLOC_DEBUG_PRINTF("Malloc allocating %zu bytes\n", size);
     pthread_mutex_lock(&g_my_malloc.mutex);
     if (g_my_malloc.page_size == 0 && !my_malloc_initializer())

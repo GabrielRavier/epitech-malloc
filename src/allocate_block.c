@@ -2,7 +2,7 @@
 ** EPITECH PROJECT, 2022
 ** malloc
 ** File description:
-** Defines increase_break
+** Defines allocate_block
 */
 
 #include "my_malloc.h"
