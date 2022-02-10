@@ -49,7 +49,7 @@ void *my_malloc_increase_break(size_t size);
 void *my_malloc_unlocked(size_t size);
 void my_free_unlocked(void *freed_block);
 
-#if 1
+#if 0
     #define MY_MALLOC_DEBUG_PRINTF(...) fprintf(stderr, __VA_ARGS__)
 #else
     #define MY_MALLOC_DEBUG_PRINTF(...)
