@@ -5,10 +5,12 @@
 ** Tests aligned_alloc
 */
 
+#include <malloc.h>
 #include <stdlib.h>
 #include <criterion/criterion.h>
 #include <errno.h>
 #include <stdint.h>
+#include <limits.h>
 
 Test(aligned_alloc, illumos)
 {
@@ -57,4 +59,56 @@ Test(aligned_alloc, netbsd_basic)
             }
         }
     };
+}
+
+Test(aligned_alloc, jemalloc_alignment_errors)
+{
+    errno = 0;
+    cr_assert_eq(aligned_alloc(0, 1), NULL);
+    cr_assert_eq(errno, EINVAL);
+
+    for (size_t alignment = sizeof(size_t); alignment < ((size_t)1 << (sizeof(size_t) * CHAR_BIT - 1)); alignment <<= 1) {
+        errno = 0;
+        cr_assert_eq(aligned_alloc(alignment + 1, 1), NULL);
+        cr_assert_eq(errno, EINVAL);
+    }
+}
+
+static void do_jemalloc_oom_errors_test(size_t alignment, size_t size)
+{
+    errno = 0;
+    cr_assert_eq(aligned_alloc(alignment, size), NULL);
+    cr_assert_eq(errno, ENOMEM);
+}
+
+Test(aligned_alloc, jemalloc_oom_errors)
+{
+    do_jemalloc_oom_errors_test(0x8000000000000000, 0x8000000000000000);
+    do_jemalloc_oom_errors_test(0x4000000000000000, 0xc000000000000000);
+    do_jemalloc_oom_errors_test(0x10LU, 0xfffffffffffffff0);
+}
+
+Test(aligned_alloc, jemalloc_alignment_and_size)
+{
+    enum {
+        PTR_COUNT = 4
+    };
+    void *ptrs[PTR_COUNT] = {};
+
+    for (size_t alignment = 8; alignment <= ((size_t)1 << 23); alignment <<= 1) {
+        size_t total = 0;
+        for (size_t size = 1; size < 3 * alignment && size < (1u << 31); size += (alignment >> (sizeof(void *) - 1)) - 1) {
+            for (int i = 0; i < PTR_COUNT; ++i) {
+                ptrs[i] = aligned_alloc(alignment, size);
+                cr_assert_neq(ptrs[i], NULL);
+                total += malloc_usable_size(ptrs[i]);
+                if (total >= ((size_t)1 << 22))
+                    break;
+            }
+            for (int i = 0; i < PTR_COUNT; ++i) {
+                free(ptrs[i]);
+                ptrs[i] = NULL;
+            }
+        }
+    }
 }

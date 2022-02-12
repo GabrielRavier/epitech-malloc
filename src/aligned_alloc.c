@@ -11,9 +11,5 @@
 
 void *aligned_alloc(size_t alignment, size_t size)
 {
-    if (alignment == 0 || (size % alignment) != 0) {
-        errno = EINVAL;
-        return (NULL);
-    }
     return (memalign(alignment, size));
 }

@@ -2,3 +2,4 @@
 /libmy_malloc.so
 /obj/
 /tests/malloc/obj/
+/tests/malloc/tests_binary

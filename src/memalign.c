@@ -36,6 +36,7 @@ static void *do_align(char *malloc_result, size_t alignment, size_t size)
 void *memalign(size_t alignment, size_t size)
 {
     char *malloc_result;
+    size_t malloced_size;
 
     if (alignment == 0 || alignment & (alignment - 1)) {
         errno = EINVAL;
@@ -43,7 +44,11 @@ void *memalign(size_t alignment, size_t size)
     }
     if (alignment < sizeof(union my_malloc_block) * 2)
         alignment = sizeof(union my_malloc_block) * 2;
-    malloc_result = malloc(alignment + size);
+    if (__builtin_add_overflow(alignment, size, &malloced_size)) {
+        errno = ENOMEM;
+        return (NULL);
+    }
+    malloc_result = malloc(malloced_size);
     if (malloc_result == NULL)
         return (NULL);
     return (do_align(malloc_result, alignment, size));
