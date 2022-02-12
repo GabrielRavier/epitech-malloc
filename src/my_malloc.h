@@ -52,7 +52,7 @@ extern struct g_my_malloc_type {
     char *system_break;
 } g_my_malloc;
 
-bool my_malloc_initializer();
+bool my_malloc_initializer(void);
 void *my_malloc_increase_break(size_t size);
 void my_malloc_allocate_block(size_t bucket);
 void *my_malloc_unlocked(size_t size);
@@ -62,8 +62,8 @@ void my_free_unlocked(void *malloced_ptr);
 // Note: This accounts for the space used for accounting, of course
 static inline size_t my_malloc_compute_used_bucket(size_t size)
 {
-    ssize_t full_page_allocation_size = g_my_malloc.page_size -
-        sizeof(union my_malloc_block);
+    ssize_t full_page_allocation_size =
+        g_my_malloc.page_size - sizeof(union my_malloc_block);
     size_t used_bucket;
     size_t bucket_size;
 

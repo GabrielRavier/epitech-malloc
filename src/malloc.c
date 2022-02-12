@@ -76,4 +76,3 @@ void *malloc(size_t size)
     MY_MALLOC_DEBUG_PRINTF("Malloc returning %p\n", result);
     return (result);
 }
-

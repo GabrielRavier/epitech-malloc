@@ -12,7 +12,7 @@
 // It is rather awkward to handle an assertion failure in a malloc... Pretty
 // much the thing with the highest chance of succeeding is to use stderr, since
 // that's unbuffered (i.e. it shouldn't try to malloc a buffer), but if it was
-// to malloc somehow it could easily result in 
+// to malloc somehow it could easily result in
 // an infinite loop. Oh well, I guess if you got there you fucked up anyway,
 // so it's technically ok to stack overflow from here lmfao
 _Noreturn void my_malloc_assert_fail(const char *expression,

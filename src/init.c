@@ -25,7 +25,7 @@ struct g_my_malloc_type g_my_malloc = {
 // Actually, the subject made me lie on the comment from before saying that the
 // page size is getpagesize(). It actually has to be getpagesize() * 2 because
 // the break must always be aligned on a multiple of two pages...
-bool my_malloc_initializer()
+bool my_malloc_initializer(void)
 {
     size_t current_page_size_bucket_size = 8;
 

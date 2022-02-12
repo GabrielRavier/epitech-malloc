@@ -11,7 +11,8 @@
 #include <string.h>
 #include <stdint.h>
 
-static void compute_sizes(size_t bucket, size_t *lower_size, size_t *higher_size)
+static void compute_sizes(size_t bucket, size_t *lower_size,
+    size_t *higher_size)
 {
     *lower_size = 1 << (bucket + 3);
     if (*lower_size < g_my_malloc.page_size)
@@ -23,8 +24,8 @@ static void compute_sizes(size_t bucket, size_t *lower_size, size_t *higher_size
         if (*higher_size < g_my_malloc.page_size)
             *higher_size -= sizeof(union my_malloc_block);
         else
-            *higher_size += g_my_malloc.page_size -
-                sizeof(union my_malloc_block);
+            *higher_size +=
+                g_my_malloc.page_size - sizeof(union my_malloc_block);
     }
 }
 
@@ -46,8 +47,8 @@ void *realloc_innards(void *old_ptr, size_t new_size)
         my_free_unlocked(old_ptr);
     result = my_malloc_unlocked(new_size);
     if (result != NULL)
-        memcpy(result, old_ptr, (lower_size < new_size) ? lower_size :
-            new_size);
+        memcpy(result, old_ptr,
+            (lower_size < new_size) ? lower_size : new_size);
     return (result);
 }
 

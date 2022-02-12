@@ -11,6 +11,11 @@
 #include <string.h>
 #include <errno.h>
 
+// Since we've allocated alignment + size, we always have enough space for the
+// alignment to take place. We then move the old malloc data right below the
+// aligned memory (and re-compute which bucket it should go into as it the
+// memory block might now be much smaller than malloc thought and thus
+// belonging in a different bucket
 static void *do_align(char *malloc_result, size_t alignment, size_t size)
 {
     char *aligned_pointer =
@@ -27,6 +32,7 @@ static void *do_align(char *malloc_result, size_t alignment, size_t size)
 
 // Allocates just enough memory to guarantee alignment, then moves the malloc
 // block just before the aligned memory so that everything works properly...
+// We force alignment to sizeof(union my_malloc_block) * 2 juuust to be safe
 void *memalign(size_t alignment, size_t size)
 {
     char *malloc_result;
