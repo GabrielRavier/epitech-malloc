@@ -31,7 +31,7 @@ static void compute_sizes(size_t bucket, size_t *lower_size,
 
 // This makes sure to avoid the copy when the block size would be the same
 // anyway
-void *realloc_innards(void *old_ptr, size_t new_size)
+static void *realloc_innards(void *old_ptr, size_t new_size)
 {
     union my_malloc_block *old_block = (union my_malloc_block *)old_ptr - 1;
     size_t bucket = old_block->bucket_index;
