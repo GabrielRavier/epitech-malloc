@@ -34,6 +34,8 @@ Test(malloc, very_simple_oom)
         return;
     do_simple_oom_test(PTRDIFF_MAX);
     do_simple_oom_test(PTRDIFF_MAX / 2);
+    do_simple_oom_test((PTRDIFF_MAX / 2) - 1);
+    do_simple_oom_test(PTRDIFF_MAX / 20);
 }
 
 Test(malloc, solaris_mtmalloc_alignment)

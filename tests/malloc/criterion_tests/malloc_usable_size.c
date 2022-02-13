@@ -23,3 +23,8 @@ Test(malloc_usable_size, osv)
     osv_do_one_test(0x100000);
     osv_do_one_test(0x200000);
 }
+
+Test(malloc_usable_size, null)
+{
+    cr_assert_eq(malloc_usable_size(NULL), 0);
+}
