@@ -19,6 +19,8 @@ static void *do_oom_return(void)
 }
 
 // Sigh... this is to conform to what we're asked for...
+// (note: this actually makes performance real bad... I don't think it saves
+// much memory either tbh)
 static size_t best_fit(size_t starting_bucket)
 {
     for (size_t i = starting_bucket; i != MY_MALLOC_TOTAL_BUCKET_COUNT; ++i)
