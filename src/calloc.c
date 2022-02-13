@@ -6,23 +6,17 @@
 */
 
 #include "my_malloc.h"
-#include <stdlib.h>
+#include <malloc.h>
 #include <string.h>
 #include <errno.h>
 
 void *calloc(size_t num_elements, size_t element_size)
 {
-    void *(*volatile malloc_ptr)(size_t) = malloc;
-    size_t malloced_size;
     void *result;
 
-    if (__builtin_mul_overflow(num_elements, element_size, &malloced_size)) {
-        errno = ENOMEM;
-        return NULL;
-    }
     MY_MALLOC_DEBUG_PRINTF("calloc allocating %zu\n", malloced_size);
-    result = malloc_ptr(malloced_size);
+    result = reallocarray(NULL, num_elements, element_size);
     if (result != NULL)
-        memset(result, 0, malloced_size);
+        memset(result, 0, malloc_usable_size(result));
     return result;
 }

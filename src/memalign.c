@@ -10,6 +10,7 @@
 #include <malloc.h>
 #include <string.h>
 #include <errno.h>
+#include <limits.h>
 
 // Since we've allocated alignment + size, we always have enough space for the
 // alignment to take place. We then move the old malloc data right below the
@@ -30,20 +31,25 @@ static void *do_align(char *malloc_result, size_t alignment, size_t size)
     return (aligned_pointer);
 }
 
+static size_t next_pow2(size_t x)
+{
+    _Static_assert(sizeof(size_t) <= sizeof(unsigned long long),
+        "__builtin_clzll doesn't work for size_t !");
+    return (x == 1 ? 1 :
+        1 << ((sizeof(size_t) * CHAR_BIT) - __builtin_clzll(x - 1)));
+}
+
 // Allocates just enough memory to guarantee alignment, then moves the malloc
 // block just before the aligned memory so that everything works properly...
-// We force alignment to sizeof(union my_malloc_block) * 2 juuust to be safe
 void *memalign(size_t alignment, size_t size)
 {
     char *malloc_result;
     size_t malloced_size;
 
-    if (alignment == 0 || alignment & (alignment - 1)) {
-        errno = EINVAL;
-        return (NULL);
-    }
-    if (alignment < sizeof(union my_malloc_block) * 2)
-        alignment = sizeof(union my_malloc_block) * 2;
+    if (alignment == 0)
+        alignment = 1;
+    if (alignment & (alignment - 1))
+        alignment = next_pow2(alignment);
     if (__builtin_add_overflow(alignment, size, &malloced_size)) {
         errno = ENOMEM;
         return (NULL);
@@ -51,5 +57,7 @@ void *memalign(size_t alignment, size_t size)
     malloc_result = malloc(malloced_size);
     if (malloc_result == NULL)
         return (NULL);
+    if (((uintptr_t)malloc_result & (alignment - 1)) == 0)
+        return (malloc_result);
     return (do_align(malloc_result, alignment, size));
 }

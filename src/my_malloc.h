@@ -18,7 +18,7 @@
 // If the block is currently allocated, it contains a bucket index and a magic
 // number (for sanity checking)
 // Note that this means that every usage of malloc incurs an overhead equal to
-// the size of a pointer
+// at least the size of a pointer
 union my_malloc_block {
     union my_malloc_block *next_block;
     struct {

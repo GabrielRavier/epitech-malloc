@@ -50,7 +50,7 @@ BINARY_NAME := tests_binary
 all: $(BINARY_NAME)
 
 # Program sources files
-SOURCE_FILES := malloc posix_memalign realloc aligned_alloc malloc_usable_size calloc
+SOURCE_FILES := malloc posix_memalign realloc aligned_alloc malloc_usable_size calloc memalign pvalloc valloc
 
 OBJECT_FILES := $(addprefix obj/tests/, $(addsuffix .o, $(SOURCE_FILES)))
 

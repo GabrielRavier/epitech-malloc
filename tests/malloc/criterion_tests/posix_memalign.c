@@ -5,10 +5,12 @@
 ** Tests posix_memalign
 */
 
-#include <stdlib.h>
+#include <malloc.h>
 #include <criterion/criterion.h>
+#include "successful_alloc.h"
 #include <errno.h>
 #include <stdint.h>
+#include <limits.h>
 
 Test(posix_memalign, illumos)
 {
@@ -24,10 +26,7 @@ Test(posix_memalign, illumos)
     cr_assert_eq(posix_memalign(&buf, 23, 16), EINVAL);
     cr_assert_eq(buf, sentinel);
 
-    cr_assert_eq(posix_memalign(&buf, sizeof(void *), 16), 0);
-    cr_assert_neq(buf, sentinel);
-    cr_assert_neq(buf, NULL);
-    cr_assert_eq(((uintptr_t)buf % sizeof(void *)), 0);
+    test_successful_posix_memalign(&buf, sizeof(void *), 16);
     free(buf);
 }
 
@@ -57,4 +56,54 @@ Test(posix_memalign, netbsd_basic)
             }
         }
     };
+}
+
+Test(posix_memalign, jemalloc_alignment_errors)
+{
+    for (size_t alignment = 0; alignment < sizeof(void *); ++alignment) {
+        void *result;
+        cr_assert_eq(posix_memalign(&result, alignment, 1), EINVAL);
+    }
+    for (size_t alignment = sizeof(void *); alignment < ((uintptr_t)1 << (sizeof(void *) * CHAR_BIT - 2)); alignment <<= 1) {
+        void *result;
+        cr_assert_eq(posix_memalign(&result, alignment + 1, 1), EINVAL);
+    }
+}
+
+static void do_jemalloc_oom_error_test(size_t alignment, size_t size)
+{
+    void *result;
+
+    cr_assert_eq(posix_memalign(&result, alignment, size), ENOMEM);
+}
+
+Test(posix_memalign, jemalloc_oom_errors)
+{
+    do_jemalloc_oom_error_test(0x8000000000000000, 0x8000000000000000);
+    do_jemalloc_oom_error_test(0x4000000000000000, 0xc000000000000001);
+    do_jemalloc_oom_error_test(0x10LU, 0xfffffffffffffff0);
+}
+
+Test(posix_memalign, jemalloc_alignment_and_size)
+{
+    enum {
+        PTR_COUNT = 4
+    };
+    void *ptrs[PTR_COUNT] = {};
+
+    for (size_t alignment = 8; alignment <= ((size_t)1 << 23); alignment <<= 1) {
+        size_t total = 0;
+        for (size_t size = 1; size < 3 * alignment && size < (1u << 31); size += ((size == 0) ? 1 : ((alignment >> 2) - 1))) {
+            for (int i = 0; i < PTR_COUNT; ++i) {
+                test_successful_posix_memalign(&ptrs[i], alignment, size);
+                total += malloc_usable_size(ptrs[i]);
+                if (total >= ((size_t)1 << 24))
+                    break;
+            }
+            for (int i = 0; i < PTR_COUNT; ++i) {
+                free(ptrs[i]);
+                ptrs[i] = NULL;
+            }
+        }
+    }
 }

@@ -54,7 +54,7 @@ all: $(BINARY_NAME)
 # Program sources files
 SOURCE_FILES := calloc reallocarray init malloc realloc free increase_break
 SOURCE_FILES += assert_fail allocate_block posix_memalign memalign
-SOURCE_FILES += malloc_usable_size pvalloc valloc aligned_alloc
+SOURCE_FILES += malloc_usable_size pvalloc valloc aligned_alloc malloc_trim
 
 OBJECT_FILES := $(addprefix obj/src/, $(addsuffix .o, $(SOURCE_FILES)))
 
@@ -71,10 +71,12 @@ include $(shell [ -d obj ] && find obj/ -type f -name '*.d')
 # Remove all object files
 clean:
 > rm --recursive --force obj
+> $(MAKE) --directory=tests/malloc clean
 
 # Remove all object, binary and other produced files
 fclean: clean
 > rm --recursive --force $(BINARY_NAME)
+> $(MAKE) --directory=tests/malloc fclean
 
 # "Remakes" the project.
 re:
@@ -82,10 +84,11 @@ re:
 > $(MAKE) all
 
 make_tests_binary:
-> $(MAKE) -C tests/malloc
+> $(MAKE) --directory=tests/malloc
 
 # Runs tests
 tests_run: make_tests_binary
 > $(MAKE) clean
 > $(MAKE) CFLAGS="$(CFLAGS) --coverage"
-> ./tests/malloc/script_test.sh & LD_PRELOAD=./libmy_malloc.so ./tests/malloc/tests_binary & wait
+> ./tests/malloc/script_test.sh & \
+    LD_PRELOAD=./libmy_malloc.so timeout 5 ./tests/malloc/tests_binary & wait

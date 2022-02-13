@@ -15,7 +15,8 @@ int posix_memalign(void **memptr, size_t alignment, size_t size)
     void *memalign_result;
 
     errno = 0;
-    if (alignment < sizeof(void *))
+    if (alignment % sizeof(void *) != 0 ||
+        ((alignment - 1) & (alignment)) != 0 || alignment == 0)
         return (EINVAL);
     memalign_result = memalign(alignment, size);
     if (memalign_result != NULL)

@@ -6,29 +6,20 @@
 */
 
 #include <malloc.h>
-#include <stdlib.h>
 #include <criterion/criterion.h>
+#include "successful_alloc.h"
 #include <errno.h>
 #include <stdint.h>
 #include <limits.h>
 
+#pragma GCC diagnostic ignored "-Walloc-size-larger-than=0"
+
 Test(aligned_alloc, illumos)
 {
-    errno = 0;
-    cr_assert_eq(aligned_alloc(sizeof(void *) - 1, 16), NULL);
-    cr_assert_eq(errno, EINVAL);
-
-    errno = 0;
-    cr_assert_eq(aligned_alloc(sizeof(void *) + 1, 16), NULL);
-    cr_assert_eq(errno, EINVAL);
-
-    errno = 0;
-    cr_assert_eq(aligned_alloc(23, 16), NULL);
-    cr_assert_eq(errno, EINVAL);
-
-    void *buf = aligned_alloc(sizeof(void *), 16);
-    cr_assert_neq(buf, NULL);
-    free(buf);
+    free(test_successful_aligned_alloc(sizeof(void *) - 1, 16));
+    free(test_successful_aligned_alloc(sizeof(void *) + 1, 16));
+    free(test_successful_aligned_alloc(23, 16));
+    free(test_successful_aligned_alloc(sizeof(void *), 16));
 }
 
 Test(aligned_alloc, netbsd_basic)
@@ -42,36 +33,13 @@ Test(aligned_alloc, netbsd_basic)
 
     for (size_t i = 0; i < (sizeof(sizes) / sizeof(sizes[0])); ++i) {
         for (size_t j = 0; j < (sizeof(alignments) / sizeof(alignments[0])); ++j) {
-            void *p = aligned_alloc(alignments[j], sizes[i]);
+            void *p = test_successful_aligned_alloc(alignments[j], sizes[i]);
 
-            if (p == NULL) {
-                if (alignments[j] == 0 || ((alignments[j] - 1) & alignments[j]) != 0 ||
-                    sizes[i] % alignments[j] != 0)
-                    cr_assert_eq(errno, EINVAL);
-                else
-                    cr_assert_eq(errno, ENOMEM);
-            } else {
-                cr_assert_neq(alignments[j], 0);
-                cr_assert_eq((alignments[j] - 1) & alignments[j], 0);
-                cr_assert_eq((uintptr_t)p & (alignments[j] - 1), 0);
-                memset(p, 0x2B, sizes[i]);
-                free(p);
-            }
+            cr_assert_eq((alignments[j] - 1) & alignments[j], 0);
+            memset(p, 0x2B, sizes[i]);
+            free(p);
         }
     };
-}
-
-Test(aligned_alloc, jemalloc_alignment_errors)
-{
-    errno = 0;
-    cr_assert_eq(aligned_alloc(0, 1), NULL);
-    cr_assert_eq(errno, EINVAL);
-
-    for (size_t alignment = sizeof(size_t); alignment < ((size_t)1 << (sizeof(size_t) * CHAR_BIT - 1)); alignment <<= 1) {
-        errno = 0;
-        cr_assert_eq(aligned_alloc(alignment + 1, 1), NULL);
-        cr_assert_eq(errno, EINVAL);
-    }
 }
 
 static void do_jemalloc_oom_errors_test(size_t alignment, size_t size)
@@ -97,12 +65,11 @@ Test(aligned_alloc, jemalloc_alignment_and_size)
 
     for (size_t alignment = 8; alignment <= ((size_t)1 << 23); alignment <<= 1) {
         size_t total = 0;
-        for (size_t size = 1; size < 3 * alignment && size < (1u << 31); size += (alignment >> (sizeof(void *) - 1)) - 1) {
+        for (size_t size = 1; size < 3 * alignment && size < (1u << 31); size += (alignment >> 2) - 1) {
             for (int i = 0; i < PTR_COUNT; ++i) {
-                ptrs[i] = aligned_alloc(alignment, size);
-                cr_assert_neq(ptrs[i], NULL);
+                ptrs[i] = test_successful_aligned_alloc(alignment, size);
                 total += malloc_usable_size(ptrs[i]);
-                if (total >= ((size_t)1 << 22))
+                if (total >= ((size_t)1 << 24))
                     break;
             }
             for (int i = 0; i < PTR_COUNT; ++i) {
