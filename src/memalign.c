@@ -28,6 +28,8 @@ static void *do_align(char *malloc_result, size_t alignment, size_t size)
         sizeof(union my_malloc_block));
     resulting_block->bucket_index = my_malloc_compute_used_bucket(size);
     MY_MALLOC_ASSERT(resulting_block->bucket_index != (uint8_t)(size_t)-1);
+    MY_MALLOC_ASSERT(
+        resulting_block->bucket_index <= MY_MALLOC_TOTAL_BUCKET_COUNT);
     return (aligned_pointer);
 }
 

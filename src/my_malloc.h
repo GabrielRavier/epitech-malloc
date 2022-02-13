@@ -12,6 +12,7 @@
 #include <stdint.h>
 #include <stddef.h>
 #include <stdbool.h>
+#include <limits.h>
 
 // This is a data structure placed before every malloced block
 // If the block is currently free, it contains a pointer to the next block
@@ -27,10 +28,11 @@ union my_malloc_block {
     };
 };
 
-// The total bucket count is slightly fudged, just to be reaaaaally safe
+// The total bucket count is this because every allocation has a size of
+// (bucket << 4), which overflows size_t if we make the maximum bucket higher
 // The magic number is a value that every allocated bucket contains
 enum {
-    MY_MALLOC_TOTAL_BUCKET_COUNT = 65,
+    MY_MALLOC_TOTAL_BUCKET_COUNT = (sizeof(size_t) * CHAR_BIT) - 4,
     MY_MALLOC_MAGIC_NUMBER = 0xADF8,
 };
 

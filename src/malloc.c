@@ -53,7 +53,7 @@ static void *alloc_from_bucket(size_t used_bucket,
 void *my_malloc_unlocked(size_t size)
 {
     size_t used_bucket = my_malloc_compute_used_bucket(size);
-    if (used_bucket == (size_t)-1)
+    if (used_bucket == (size_t)-1 || used_bucket >= MY_MALLOC_TOTAL_BUCKET_COUNT)
         return (do_oom_return());
     return (alloc_from_bucket(used_bucket, size));
 }
@@ -64,7 +64,7 @@ void *malloc(size_t size)
 
     if (size == 0)
         size = 1;
-    if (size > (PTRDIFF_MAX / 2))
+    if (size > PTRDIFF_MAX)
         return (do_oom_return());
     MY_MALLOC_DEBUG_PRINTF("Malloc allocating %zu bytes\n", size);
     pthread_mutex_lock(&g_my_malloc.mutex);

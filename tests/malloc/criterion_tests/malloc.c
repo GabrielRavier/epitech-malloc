@@ -26,7 +26,7 @@ static void do_simple_oom_test(size_t size)
     cr_assert_eq(malloc(size), NULL);
 }
 
-Test(malloc, very_simple_oom)
+Test(malloc, simple_oom)
 {
     do_simple_oom_test(SIZE_MAX);
 
