@@ -54,6 +54,8 @@ static void *realloc_innards(void *old_ptr, size_t new_size)
     return (result);
 }
 
+// Yes, I know new_size == 0 to new_size = page_size is stupid... but it's
+// mandated by Marvin
 void *realloc(void *old_ptr, size_t new_size)
 {
     void *result;
@@ -61,10 +63,8 @@ void *realloc(void *old_ptr, size_t new_size)
     MY_MALLOC_DEBUG_PRINTF("Reallocating to %zu bytes\n", new_size);
     if (old_ptr == NULL)
         return (malloc(new_size));
-    if (new_size == 0) {
-        free(old_ptr);
-        return (NULL);
-    }
+    if (new_size == 0)
+        new_size = g_my_malloc.page_size;
     pthread_mutex_lock(&g_my_malloc.mutex);
     result = realloc_innards(old_ptr, new_size);
     pthread_mutex_unlock(&g_my_malloc.mutex);
