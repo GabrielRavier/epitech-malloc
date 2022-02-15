@@ -9,28 +9,18 @@
 #include "assert.h"
 #include <unistd.h>
 
-static char *align_to_page_size(char *ptr)
+static bool do_system_increase(ssize_t size)
 {
-    return ptr +
-        (((((~(uintptr_t) ptr) + 1) % g_my_malloc.page_size) +
-            g_my_malloc.page_size));
-}
+    void *new_break;
 
-static bool do_system_increase(size_t size)
-{
-    char *wanted_new_break =
-        align_to_page_size(g_my_malloc.virtual_break + size);
-
+    size += g_my_malloc.page_size - (size % g_my_malloc.page_size);
     MY_MALLOC_ASSERT(sbrk(0) == g_my_malloc.system_break);
-    MY_MALLOC_ASSERT(
-        ((uintptr_t)wanted_new_break % g_my_malloc.page_size) == 0);
-    MY_MALLOC_ASSERT(wanted_new_break - g_my_malloc.system_break > 0);
-    MY_MALLOC_DEBUG_PRINTF("Increasing system break by %td bytes\n",
-        wanted_new_break - g_my_malloc.system_break);
-    if (brk(wanted_new_break) == -1)
+    MY_MALLOC_DEBUG_PRINTF("Increasing system break by %zd bytes\n", size);
+    new_break = sbrk(size);
+    MY_MALLOC_DEBUG_PRINTF("New break value: %p\n", new_break);
+    if (new_break == (void *)-1)
         return (false);
-    MY_MALLOC_ASSERT(g_my_malloc.system_break < wanted_new_break);
-    g_my_malloc.system_break = wanted_new_break;
+    g_my_malloc.system_break = (char *)new_break + size;
     return (true);
 }
 

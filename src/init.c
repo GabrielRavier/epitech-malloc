@@ -29,7 +29,7 @@ bool my_malloc_initializer(void)
 {
     size_t current_page_size_bucket_size = 8;
 
-    g_my_malloc.page_size = getpagesize() * 4;
+    g_my_malloc.page_size = getpagesize() * 2;
     g_my_malloc.system_break = sbrk(0);
     g_my_malloc.virtual_break =
         (char *)(((uintptr_t)g_my_malloc.system_break + 16) & ~0xF);

@@ -67,7 +67,7 @@ Test(realloc, osv)
     free(buffer);
 
     buffer = test_successful_malloc(16);
-    cr_assert_eq(realloc(buffer, 0), NULL);
+    free(test_successful_realloc(buffer, 0));
 }
 
 Test(realloc, bionic_larger)
@@ -181,5 +181,5 @@ Test(realloc, bionic_0)
 {
     void *p = test_successful_malloc(1024);
 
-    cr_assert_eq(realloc(p, 0), NULL);
+    free(test_successful_realloc(p, 0));
 }

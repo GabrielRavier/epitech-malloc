@@ -96,4 +96,3 @@ Test(calloc, bionic_0_sizes)
     free(test_successful_calloc(0, 1));
     free(test_successful_calloc(1, 0));
 }
-
