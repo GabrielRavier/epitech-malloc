@@ -55,7 +55,8 @@ static void *alloc_from_bucket(size_t used_bucket,
 void *my_malloc_unlocked(size_t size)
 {
     size_t used_bucket = my_malloc_compute_used_bucket(size);
-    if (used_bucket == (size_t)-1 || used_bucket >= MY_MALLOC_TOTAL_BUCKET_COUNT)
+    if (used_bucket == (size_t)-1 ||
+        used_bucket >= MY_MALLOC_TOTAL_BUCKET_COUNT)
         return (do_oom_return());
     return (alloc_from_bucket(used_bucket, size));
 }

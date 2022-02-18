@@ -20,7 +20,7 @@ static size_t align_to_16(size_t size)
 // aligned to 16
 void my_malloc_allocate_block(size_t which_bucket)
 {
-    ssize_t added_size_for_alignment = 16 - sizeof(void *);
+    ssize_t added_size_for_alignment = 16 - sizeof(union my_malloc_block);
     ssize_t wanted_size = align_to_16((1ull << (which_bucket + 4)) +
         added_size_for_alignment);
     union my_malloc_block *new_block;
